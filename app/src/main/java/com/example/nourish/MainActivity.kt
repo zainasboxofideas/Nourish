@@ -26,7 +26,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.text.KeyboardActions
 
 import androidx.compose.ui.text.input.ImeAction
-
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -212,11 +212,11 @@ fun sampleCourses(): List<Course> = listOf(
     Course(
         id = 1,
         title = "Baking Basics: Cookies & Cakes",
-        bannerRes = R.drawable.recipe_pancakes,
+        bannerRes = R.drawable.course_baking,
         duration = "4 weeks",
         level = "Easy",
         instructor = "Chef Ayesha Rahman",
-        startDate = "10 December 2025",
+        startDate = "Join Anytime, at your own pace!",
         outline = listOf(
             "Week 1: Intro to baking & oven safety",
             "Week 2: Classic cookies",
@@ -227,24 +227,23 @@ fun sampleCourses(): List<Course> = listOf(
     Course(
         id = 2,
         title = "Mastering Bangladeshi Curries",
-        bannerRes = R.drawable.recipe_pasta,
-        duration = "6 weeks",
+        bannerRes = R.drawable.course_curry,
+        duration = "5 weeks",
         level = "Medium",
         instructor = "Chef Mahmud Hasan",
-        startDate = "20 December 2025",
+        startDate = "20 December 2025, 7.00pm (GMT+6)",
         outline = listOf(
             "Spice fundamentals",
             "Chicken & beef curries",
             "Fish & seafood curries",
             "Vegetarian curries",
-            "Meal planning",
             "Final live cooking session"
         )
     ),
     Course(
         id = 3,
         title = "Advanced Pastry & Desserts",
-        bannerRes = R.drawable.recipe_salad,
+        bannerRes = R.drawable.course_pastry,
         duration = "8 weeks",
         level = "Advanced",
         instructor = "Chef Nabila Karim",
@@ -287,13 +286,6 @@ class MainActivity : ComponentActivity() {
 
 // REPLACE YOUR CookingApp FUNCTION (around line 240) WITH THIS UPDATED VERSION:
 
-// ----------------------------- NAVIGATION ROOT -----------------------------
-
-// REPLACE YOUR ENTIRE CookingApp FUNCTION (starting around line 265) WITH THIS:
-
-// ----------------------------- NAVIGATION ROOT -----------------------------
-
-// REPLACE YOUR ENTIRE CookingApp FUNCTION WITH THIS FIXED VERSION:
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -964,19 +956,19 @@ fun MainScreen(
         Scaffold(
             bottomBar = {
                 NavigationBar {
-                    // NEW: Home tab
+
                     NavigationBarItem(
                         selected = currentTab == BottomTab.HOME,
                         onClick = { currentTab = BottomTab.HOME },
                         icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
                         label = { Text("Home") }
                     )
-                    // OLD Home → now Search
+
                     NavigationBarItem(
                         selected = currentTab == BottomTab.SEARCH,
                         onClick = { currentTab = BottomTab.SEARCH },
-                        icon = { Icon(Icons.Filled.Search, contentDescription = "Search") },
-                        label = { Text("Search") }
+                        icon = { Icon( imageVector = Icons.Default.Restaurant, contentDescription = "Recipes") },
+                        label = { Text("Recipes") }
                     )
                     NavigationBarItem(
                         selected = currentTab == BottomTab.COURSES,
@@ -1317,44 +1309,47 @@ fun HomeLandingScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        // Header row: avatar + greeting
+        // Header row: avatar + greeting with background
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFFFFF3E0))  // ✅ Light orange background
+                .padding(12.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFFCC80))
+                    .background(Color(0xFFFF7043))  // ✅ Changed to match theme
                     .clickable { onOpenDrawer() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = displayInitial,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF5D4037),
+                    color = Color.White,  // ✅ White text for better contrast
                     fontSize = 20.sp
                 )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
             Column {
                 Text(
                     text = "Hi, $greetingName!",
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF5D4037)  // ✅ Dark brown for contrast
                 )
                 Text(
                     text = "Welcome back to Nourish.",
                     fontSize = 13.sp,
-                    color = Color.Gray
+                    color = Color(0xFF8D6E63)  // ✅ Medium brown
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
         // Search on top
         OutlinedTextField(
             value = landingSearchText,
@@ -1387,6 +1382,7 @@ fun HomeLandingScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Banner
+// Banner
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1395,7 +1391,7 @@ fun HomeLandingScreen(
                 .background(Color(0xFFFFE0B2))
         ) {
             Image(
-                painter = painterResource(id = R.drawable.splash_bg),
+                painter = painterResource(id = R.drawable.home_banner),  // ✅ Use your new banner
                 contentDescription = "Cooking banner",
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop
@@ -1403,30 +1399,43 @@ fun HomeLandingScreen(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.25f))
+                    .background(Color.Black.copy(alpha = 0.35f))  // ✅ Slightly darker overlay
             )
             Column(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .padding(20.dp)
             ) {
+                // ✅ NEW: Title with stroke/border effect
                 Text(
                     text = "Cook smarter, not harder.",
                     color = Color.White,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    style = androidx.compose.ui.text.TextStyle(
+                        shadow = androidx.compose.ui.graphics.Shadow(
+                            color = Color.Black,
+                            offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                            blurRadius = 4f
+                        )
+                    )
                 )
                 Spacer(modifier = Modifier.height(4.dp))
+                // ✅ NEW: Subtitle with stroke/border effect
                 Text(
                     text = "Discover recipes, follow guided steps,\nand learn from online courses.",
                     color = Color.White,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    style = androidx.compose.ui.text.TextStyle(
+                        shadow = androidx.compose.ui.graphics.Shadow(
+                            color = Color.Black,
+                            offset = androidx.compose.ui.geometry.Offset(1.5f, 1.5f),
+                            blurRadius = 3f
+                        )
+                    )
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
         // Popular recipes
         Text(
             text = "Popular recipes",
@@ -1491,10 +1500,20 @@ fun RecipeSquareCard(
                 modifier = Modifier.matchParentSize(),
                 contentScale = ContentScale.Crop
             )
+            // ✅ NEW: Gradient overlay only at bottom
             Box(
                 modifier = Modifier
-                    .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.25f))
+                    .fillMaxWidth()
+                    .height(70.dp)
+                    .align(Alignment.BottomCenter)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.9f)
+                            )
+                        )
+                    )
             )
             Column(
                 modifier = Modifier
@@ -1525,43 +1544,73 @@ fun CourseHorizontalCard(
 ) {
     Surface(
         modifier = Modifier
-            .width(220.dp)
-            .height(150.dp)
+            .width(260.dp)  // ✅ Wider card
+            .height(180.dp)  // ✅ Taller card
             .clip(RoundedCornerShape(16.dp))
             .clickable { onCourseClick(course.id) },
-        tonalElevation = 3.dp
+        tonalElevation = 4.dp  // ✅ More elevation for depth
     ) {
         Column {
-            Image(
-                painter = painterResource(id = course.bannerRes),
-                contentDescription = course.title,
+            // ✅ Bigger image with gradient overlay
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(80.dp),
-                contentScale = ContentScale.Crop
-            )
+                    .height(110.dp)  // ✅ Much bigger image (was 80dp)
+            ) {
+                Image(
+                    painter = painterResource(id = course.bannerRes),
+                    contentDescription = course.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                // ✅ Gradient overlay at bottom for better text readability
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp)
+                        .align(Alignment.BottomCenter)
+                        .background(
+                            brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.5f)
+                                )
+                            )
+                        )
+                )
+            }
+
+            // ✅ Better text layout
             Column(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(12.dp)
+                    .fillMaxWidth()
             ) {
                 Text(
                     text = course.title,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 18.sp
                 )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = "Level: ${course.level}",
-                    fontSize = 11.sp,
-                    color = Color.Gray
-                )
-                Text(
-                    text = "Starts: ${course.startDate}",
-                    fontSize = 11.sp,
-                    color = Color.Gray
-                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = course.level,
+                        fontSize = 11.sp,
+                        color = Color(0xFFFF7043),
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = course.duration,
+                        fontSize = 11.sp,
+                        color = Color.Gray
+                    )
+                }
             }
         }
     }
@@ -2958,12 +3007,12 @@ fun CookAiScreen() {
         try {
             GenerativeModel(
                 modelName = "gemini-2.5-flash",
-                apiKey = "AIzaSyCmkhxY32hEyq9nCxZGeZ8GJ-UxgWvAd7c",  // ⚠️ YOU MUST ADD YOUR API KEY HERE
+                apiKey = BuildConfig.GEMINI_API_KEY,
                 generationConfig = generationConfig {
                     temperature = 0.7f
                     topK = 40
                     topP = 0.95f
-                    maxOutputTokens = 1024
+
                 }
             )
 
