@@ -2656,7 +2656,9 @@ fun RecipeDetailScreen(
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
-
+                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    CompactRecipeTimer()
+                }
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Checkboxes for steps
@@ -2768,9 +2770,309 @@ fun RecipeDetailScreen(
     }  // Scaffold closes
 }  // RecipeDetailScreen closes // RecipeDetailScreen closes
 
+@Composable
+fun CompactRecipeTimer() {
+    val context = LocalContext.current
+
+    var hours by remember { mutableStateOf("00") }
+    var minutes by remember { mutableStateOf("05") }
+    var seconds by remember { mutableStateOf("00") }
+
+    var totalSeconds by remember { mutableStateOf(0) }
+    var remainingSeconds by remember { mutableStateOf(0) }
+    var isRunning by remember { mutableStateOf(false) }
+    var showTimeUpDialog by remember { mutableStateOf(false) }
+
+    var ringtone by remember { mutableStateOf<android.media.Ringtone?>(null) }
+
+    // Countdown logic
+    LaunchedEffect(isRunning, remainingSeconds) {
+        if (isRunning && remainingSeconds > 0) {
+            kotlinx.coroutines.delay(1000L)
+            remainingSeconds -= 1
+        } else if (remainingSeconds == 0 && isRunning && totalSeconds > 0) {
+            isRunning = false
+            showTimeUpDialog = true
+
+            // Play alarm sound
+            try {
+                val notification = android.media.RingtoneManager.getDefaultUri(
+                    android.media.RingtoneManager.TYPE_ALARM
+                )
+                ringtone = android.media.RingtoneManager.getRingtone(context, notification)
+                ringtone?.play()
+            } catch (e: Exception) {
+                android.util.Log.e("CompactTimer", "Error playing alarm", e)
+            }
+        }
+    }
+
+    // Time's Up Dialog
+    if (showTimeUpDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { },
+            title = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "⏰",
+                        fontSize = 48.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Time's Up!",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFFF6B35)
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = "Your timer has finished!",
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        ringtone?.stop()
+                        showTimeUpDialog = false
+                        remainingSeconds = 0
+                        totalSeconds = 0
+                        hours = "00"
+                        minutes = "05"
+                        seconds = "00"
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFF6B35)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Stop Alarm", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
+    // Timer UI
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 12.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFFFFF3E0),
+        tonalElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Time input or display
+            if (!isRunning && remainingSeconds == 0) {
+                // Input mode
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    // Hours
+                    OutlinedTextField(
+                        value = hours,
+                        onValueChange = {
+                            if (it.length <= 2 && it.all { char -> char.isDigit() }) {
+                                hours = it
+                            }
+                        },
+                        modifier = Modifier.width(70.dp),
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        ),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFFF6B35),
+                            unfocusedBorderColor = Color.Gray
+                        )
+                    )
+
+                    Text(":", fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
+
+                    // Minutes
+                    OutlinedTextField(
+                        value = minutes,
+                        onValueChange = {
+                            if (it.length <= 2 && it.all { char -> char.isDigit() }) {
+                                minutes = it
+                            }
+                        },
+                        modifier = Modifier.width(70.dp),
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        ),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFFF6B35),
+                            unfocusedBorderColor = Color.Gray
+                        )
+                    )
+
+                    Text(":", fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 4.dp))
+
+                    // Seconds
+                    OutlinedTextField(
+                        value = seconds,
+                        onValueChange = {
+                            if (it.length <= 2 && it.all { char -> char.isDigit() }) {
+                                seconds = it
+                            }
+                        },
+                        modifier = Modifier.width(70.dp),
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center
+                        ),
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFFFF6B35),
+                            unfocusedBorderColor = Color.Gray
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "HH : MM : SS",
+                    fontSize = 11.sp,
+                    color = Color.Gray
+                )
+            } else {
+                // Display mode - show countdown
+                val displayHours = remainingSeconds / 3600
+                val displayMinutes = (remainingSeconds % 3600) / 60
+                val displaySeconds = remainingSeconds % 60
+
+                Text(
+                    text = String.format("%02d:%02d:%02d", displayHours, displayMinutes, displaySeconds),
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (remainingSeconds <= 10) Color(0xFFD32F2F) else Color(0xFF2E7D32)
+                )
+
+                // Progress bar
+                val progress = if (totalSeconds > 0) remainingSeconds.toFloat() / totalSeconds.toFloat() else 0f
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                androidx.compose.material3.LinearProgressIndicator(
+                    progress = progress,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = if (remainingSeconds <= 10) Color(0xFFD32F2F) else Color(0xFF4CAF50),
+                    trackColor = Color(0xFFE0E0E0)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Control buttons
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Start/Pause Button
+                Button(
+                    onClick = {
+                        if (!isRunning && remainingSeconds == 0) {
+                            // Set timer
+                            val h = hours.toIntOrNull() ?: 0
+                            val m = minutes.toIntOrNull() ?: 0
+                            val s = seconds.toIntOrNull() ?: 0
+
+                            totalSeconds = h * 3600 + m * 60 + s
+
+                            if (totalSeconds > 0) {
+                                remainingSeconds = totalSeconds
+                                isRunning = true
+                            }
+                        } else {
+                            // Pause/Resume
+                            isRunning = !isRunning
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isRunning) Color(0xFFFFA726) else Color(0xFF4CAF50)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (isRunning) android.R.drawable.ic_media_pause
+                            else android.R.drawable.ic_media_play
+                        ),
+                        contentDescription = if (isRunning) "Pause" else "Start",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (isRunning) "Pause" else if (remainingSeconds > 0) "Resume" else "Start",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                // Reset Button
+                Button(
+                    onClick = {
+                        isRunning = false
+                        remainingSeconds = 0
+                        totalSeconds = 0
+                        hours = "00"
+                        minutes = "05"
+                        seconds = "00"
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF718096)
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = android.R.drawable.ic_menu_revert),
+                        contentDescription = "Reset",
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Reset",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
 // ----------------------------- COURSES UI -----------------------------
 
-// REPLACE YOUR CoursesScreen FUNCTION (around line 1710) WITH THIS:
+
 
 @Composable
 fun CoursesScreen(
