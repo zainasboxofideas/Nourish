@@ -24,7 +24,6 @@ import com.google.firebase.auth.FirebaseAuthException
 
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.text.KeyboardActions
-
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.animation.core.LinearEasing
@@ -117,7 +116,8 @@ data class Recipe(
     val category: String, // e.g. "Breakfast", "Dessert", "Veg"
     val ingredients: List<String>,
     val steps: List<String>,
-    val difficulty: String    // 🔥 NEW: "Easy" / "Medium" / "Hard"
+    val difficulty: String,
+    val videoUrl: String? = null// 🔥 NEW: "Easy" / "Medium" / "Hard"
 )
 
 data class Course(
@@ -146,7 +146,7 @@ fun sampleRecipes(): List<Recipe> = listOf(
         ingredients = listOf(
             "200g fettuccine pasta",
             "2 tbsp butter",
-            "2 cloves garlic, minced",
+            "2 cloves garlic, minced (or more if you wish",
             "1 cup heavy cream",
             "1/2 cup grated parmesan",
             "Salt & pepper to taste"
@@ -158,30 +158,34 @@ fun sampleRecipes(): List<Recipe> = listOf(
             "Stir in parmesan until sauce thickens.",
             "Add pasta, toss well, season and serve hot."
         ),
-        difficulty = "Medium"
+        difficulty = "Medium",
+        videoUrl = "https://www.youtube.com/watch?v=QseL6X6FjvM"
     ),
     Recipe(
         id = 2,
-        name = "Fresh Garden Salad",
+        name = "Fresh Crispy Jhalmuri",
         imageRes = R.drawable.recipe_salad,
         prepTime = "10 min",
         category = "Vegetarian",
         ingredients = listOf(
-            "Lettuce leaves",
-            "Cherry tomatoes",
+            "Chanachor",
+            "Tomatoes(chopped)",
+            "green chilli",
             "Cucumber slices",
-            "Olive oil",
+            "Olive oil or mustard oil",
             "Lemon juice",
-            "Salt & pepper"
+            "Salt & pepper",
+            "puffed rice",
         ),
         steps = listOf(
             "Wash and chop all vegetables.",
-            "Add to a large bowl.",
+            "Add all the ingredients to a large bowl.",
             "Drizzle olive oil and lemon juice.",
             "Season with salt and pepper.",
             "Toss gently and serve fresh."
         ),
-        difficulty = "Easy"
+        difficulty = "Easy",
+        videoUrl = "https://youtube.com/shorts/xINa3_xrBIM?si=wHDFBwRpYDHaHaIU"
     ),
     Recipe(
         id = 3,
@@ -204,7 +208,8 @@ fun sampleRecipes(): List<Recipe> = listOf(
             "Heat a pan and pour batter.",
             "Cook until bubbles appear, flip and cook the other side."
         ),
-        difficulty = "Easy"
+        difficulty = "Easy",
+        videoUrl = "https://www.youtube.com/watch?v=LWuuCndtJr0"
     )
 )
 
@@ -500,7 +505,11 @@ fun CookingApp() {
                         }
                     }
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onNavigateToCookAI = {  // ✅ NEW
+                    navController.navigate("cookAI")
+                    // Will go to main screen - user can tap CookAI tab
+                }
             )
         }
 
@@ -647,6 +656,9 @@ fun CookingApp() {
                 },
                 onBack = { navController.popBackStack() }
             )
+        }
+        composable("cookAI") {
+            CookAiScreen(onBack = { navController.popBackStack() })
         }
     }
 }
@@ -1304,182 +1316,198 @@ fun HomeLandingScreen(
     val recommendedCourses = courses
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+        modifier = Modifier.fillMaxSize()
     ) {
-        // Header row: avatar + greeting with background
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFFFFF3E0))  // ✅ Light orange background
-                .padding(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFFFF7043))  // ✅ Changed to match theme
-                    .clickable { onOpenDrawer() },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = displayInitial,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,  // ✅ White text for better contrast
-                    fontSize = 20.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column {
-                Text(
-                    text = "Hi, $greetingName!",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF5D4037)  // ✅ Dark brown for contrast
-                )
-                Text(
-                    text = "Welcome back to Nourish.",
-                    fontSize = 13.sp,
-                    color = Color(0xFF8D6E63)  // ✅ Medium brown
-                )
-            }
-        }
-        // Search on top
-        OutlinedTextField(
-            value = landingSearchText,
-            onValueChange = onLandingSearchChange,
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Search recipes or courses…") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    onSearchSubmit(landingSearchText)
-                }
-            ),
-            trailingIcon = {
-                IconButton(onClick = {
-                    onSearchSubmit(landingSearchText)
-                }) {
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        contentDescription = "Search"
-                    )
-                }
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color(0xFFFF7043),
-                unfocusedBorderColor = Color.LightGray
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Banner
-// Banner
+        // ✅ FULL-WIDTH HEADER (No rounded corners, edge-to-edge)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(Color(0xFFFFE0B2))
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFFFFF3E0),  // Light orange
+                            Color(0xFFFFE0B2)   // Slightly darker orange
+                        )
+                    )
+                )
+                .padding(horizontal = 18.dp, vertical = 20.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.home_banner),  // ✅ Use your new banner
-                contentDescription = "Cooking banner",
-                modifier = Modifier.matchParentSize(),
-                contentScale = ContentScale.Crop
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(54.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFF7043))
+                        .clickable { onOpenDrawer() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = displayInitial,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 20.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Hi, $greetingName!",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF5D4037)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Welcome back to Nourish.",
+                        fontSize = 12.sp,
+                        color = Color(0xFF8D6E63)
+                    )
+                }
+            }
+        }
+
+        // ✅ SCROLLABLE CONTENT BELOW HEADER
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
+            // Search bar
+            OutlinedTextField(
+                value = landingSearchText,
+                onValueChange = onLandingSearchChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Search recipes or courses…") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        onSearchSubmit(landingSearchText)
+                    }
+                ),
+                trailingIcon = {
+                    IconButton(onClick = {
+                        onSearchSubmit(landingSearchText)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Search"
+                        )
+                    }
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFFFF7043),
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Banner
             Box(
                 modifier = Modifier
-                    .matchParentSize()
-                    .background(Color.Black.copy(alpha = 0.35f))  // ✅ Slightly darker overlay
-            )
-            Column(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(20.dp)
+                    .fillMaxWidth()
+                    .height(180.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color(0xFFFFE0B2))
             ) {
-                // ✅ NEW: Title with stroke/border effect
-                Text(
-                    text = "Cook smarter, not harder.",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = androidx.compose.ui.text.TextStyle(
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color = Color.Black,
-                            offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                            blurRadius = 4f
+                Image(
+                    painter = painterResource(id = R.drawable.home_banner),
+                    contentDescription = "Cooking banner",
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = 0.35f))
+                )
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(20.dp)
+                ) {
+                    Text(
+                        text = "Cook smarter, not harder.",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black,
+                                offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                                blurRadius = 4f
+                            )
                         )
                     )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                // ✅ NEW: Subtitle with stroke/border effect
-                Text(
-                    text = "Discover recipes, follow guided steps,\nand learn from online courses.",
-                    color = Color.White,
-                    fontSize = 13.sp,
-                    style = androidx.compose.ui.text.TextStyle(
-                        shadow = androidx.compose.ui.graphics.Shadow(
-                            color = Color.Black,
-                            offset = androidx.compose.ui.geometry.Offset(1.5f, 1.5f),
-                            blurRadius = 3f
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Discover recipes, follow guided steps,\nand learn from online courses.",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        style = androidx.compose.ui.text.TextStyle(
+                            shadow = androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black,
+                                offset = androidx.compose.ui.geometry.Offset(1.5f, 1.5f),
+                                blurRadius = 3f
+                            )
                         )
                     )
-                )
+                }
             }
-        }
-        // Popular recipes
-        Text(
-            text = "Popular recipes",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(popularRecipes) { recipe ->
-                RecipeSquareCard(
-                    recipe = recipe,
-                    onClick = { onRecipeClick(recipe.id) }
-                )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Popular recipes
+            Text(
+                text = "Popular recipes",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(popularRecipes) { recipe ->
+                    RecipeSquareCard(
+                        recipe = recipe,
+                        onClick = { onRecipeClick(recipe.id) }
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-        // Recommended courses
-        Text(
-            text = "Recommended courses",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+            // Recommended courses
+            Text(
+                text = "Recommended courses",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(recommendedCourses) { course ->
-                CourseHorizontalCard(
-                    course = course,
-                    onCourseClick = onCourseClick
-                )
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(recommendedCourses) { course ->
+                    CourseHorizontalCard(
+                        course = course,
+                        onCourseClick = onCourseClick
+                    )
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+        }
     }
 }
-
 @Composable
 fun RecipeSquareCard(
     recipe: Recipe,
@@ -2300,16 +2328,99 @@ fun RecipeCard(
     }
 }
 
+@Composable
+fun YouTubeVideoPreview(videoUrl: String, recipeName: String) {
+    val context = LocalContext.current
 
+    Surface(
+        onClick = {
+            val intent = android.content.Intent(
+                android.content.Intent.ACTION_VIEW,
+                android.net.Uri.parse(videoUrl)
+            )
+            intent.setPackage("com.google.android.youtube")
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                intent.setPackage(null)
+                context.startActivity(intent)
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clip(RoundedCornerShape(16.dp)),
+        shadowElevation = 4.dp,
+        color = Color(0xFF282828)
+    ) {
+        Box {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(Color(0xFF282828), Color(0xFF181818))
+                        )
+                    )
+            )
 
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "📺 Video Tutorial",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "How to make $recipeName",
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 14.sp,
+                        maxLines = 2
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Tap to watch in YouTube",
+                        color = Color.White,
+                        fontSize = 14.sp
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFFFF0000)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("▶", fontSize = 28.sp, color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipeDetailScreen(
     recipe: Recipe,
     isSaved: Boolean,
     onToggleSave: () -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToCookAI: () -> Unit
 ) {
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             TopAppBar(
@@ -2342,106 +2453,245 @@ fun RecipeDetailScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            Box(
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp)
+                    .padding(paddingValues)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
-                Image(
-                    painter = painterResource(id = recipe.imageRes),
-                    contentDescription = recipe.name,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                // Recipe Image
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                        .clip(RoundedCornerShape(30.dp))
-                        .background(Color.Black.copy(alpha = 0.6f))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .fillMaxWidth()
+                        .height(220.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = recipe.imageRes),
+                        contentDescription = recipe.name,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp)
+                            .clip(RoundedCornerShape(30.dp))
+                            .background(Color.Black.copy(alpha = 0.6f))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text(
+                            text = "Prep: ${recipe.prepTime}",
+                            color = Color.White,
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Ingredients Section
+                Text(
+                    text = "Ingredients",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(
+                    modifier = Modifier.padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    recipe.ingredients.forEach { ingredient ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(6.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFFF7043))
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = ingredient, fontSize = 14.sp)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Order Ingredients Section
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Prep: ${recipe.prepTime}",
+                        text = "Don't have the ingredients?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Color(0xFF5D4037),
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Order directly from here!",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = Color(0xFFFF7043),
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Pandamart Button
+                    Button(
+                        onClick = {
+                            val intent = android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("https://www.foodpanda.com.bd/darkstore/ta7z/pandamart-dhanmondi")
+                            )
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier
+                            .width(200.dp)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD70F64)
+                        )
+                    ) {
+                        Text(
+                            text = "Get it from Pandamart",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Shwapno Button
+                    Button(
+                        onClick = {
+                            val intent = android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("https://www.shwapno.com/")
+                            )
+                            context.startActivity(intent)
+                        },
+                        modifier = Modifier
+                            .width(200.dp)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD50000)
+                        )
+                    ) {
+                        Text(
+                            text = "Get it from Shwapno",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Video Tutorial Section
+                Text(
+                    text = "Video Tutorial",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF5D4037),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Embedded YouTube Video
+                recipe.videoUrl?.let { videoUrl ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        YouTubeVideoPreview(
+                            videoUrl = videoUrl,
+                            recipeName = recipe.name
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Instructions Section
+                Text(
+                    text = "Instructions",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    recipe.steps.forEachIndexed { index, step ->
+                        Row(
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = "${index + 1}.",
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.width(24.dp)
+                            )
+                            Text(
+                                text = step,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+            }  // Column closes
+
+            // Floating AI Button
+            FloatingActionButton(
+                onClick = onNavigateToCookAI,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = Color(0xFFFF6B35),
+                shape = CircleShape
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.padding(12.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_cookai),
+                        contentDescription = "Ask CookAI",
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Text(
+                        text = "Ask AI",
                         color = Color.White,
-                        fontSize = 12.sp
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Ingredients",
-                modifier = Modifier.padding(horizontal = 16.dp),
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                recipe.ingredients.forEach { ingredient ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(6.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFF7043))
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = ingredient, fontSize = 14.sp)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Instructions",
-                modifier = Modifier.padding(horizontal = 16.dp),
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column(
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                recipe.steps.forEachIndexed { index, step ->
-                    Row(
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(
-                            text = "${index + 1}.",
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.width(24.dp)
-                        )
-                        Text(
-                            text = step,
-                            fontSize = 14.sp
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-        }
-    }
-}
+        }  // Box closes
+    }  // Scaffold closes
+}  // RecipeDetailScreen closes
 
 // ----------------------------- COURSES UI -----------------------------
 
@@ -2994,7 +3244,7 @@ fun EnrollSuccessScreen(
 // ----------------------------- COOK AI UI -----------------------------
 
 @Composable
-fun CookAiScreen() {
+fun CookAiScreen(onBack: (() -> Unit)? = null) {
     var messages by remember { mutableStateOf(listOf<ChatMessage>()) }
     var userInput by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -3034,6 +3284,19 @@ fun CookAiScreen() {
                 .background(Color(0xFFFF6B35))
                 .padding(16.dp)
         ) {
+            // ✅ Back button
+            onBack?.let {
+                IconButton(
+                    onClick = it,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        painter = painterResource(id = android.R.drawable.ic_media_previous),
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+            }
             Text(
                 text = "Cook AI Assistant",
                 fontSize = 24.sp,
@@ -3385,7 +3648,7 @@ fun loadRecipesFromJson(context: Context): List<Recipe> {
             val prepTime = obj.optString("prepTime", "N/A")
             val category = obj.optString("category", "Other")
             val difficulty = obj.optString("difficulty", "Medium")
-
+            val videoUrl = obj.optString("videoUrl", null)
             val ingredientsJson = obj.optJSONArray("ingredients")
             val stepsJson = obj.optJSONArray("steps")
 
@@ -3419,7 +3682,8 @@ fun loadRecipesFromJson(context: Context): List<Recipe> {
                     else listOf("No ingredients listed."),
                     steps = if (steps.isNotEmpty()) steps
                     else listOf("No instructions provided."),
-                    difficulty = difficulty
+                    difficulty = difficulty,
+                    videoUrl = if (videoUrl.isNullOrEmpty()) null else videoUrl
                 )
             )
         }
