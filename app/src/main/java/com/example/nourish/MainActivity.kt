@@ -2364,49 +2364,47 @@ fun YouTubeVideoPreview(videoUrl: String, recipeName: String) {
                     )
             )
 
+            // ✅ CENTERED Content
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Column {
-                    Text(
-                        text = "📺 Video Tutorial",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "How to make $recipeName",
-                        color = Color.White.copy(alpha = 0.9f),
-                        fontSize = 14.sp,
-                        maxLines = 2
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                // ✅ Play button CENTERED
+                Box(
+                    modifier = Modifier
+                        .size(72.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFF0000)),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Tap to watch in YouTube",
+                        text = "▶",
+                        fontSize = 36.sp,
                         color = Color.White,
-                        fontSize = 14.sp
+                        fontWeight = FontWeight.Bold
                     )
-
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFFF0000)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("▶", fontSize = 28.sp, color = Color.White, fontWeight = FontWeight.Bold)
-                    }
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Watch Tutorial",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "How to make $recipeName",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 13.sp,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
             }
         }
     }
@@ -2627,7 +2625,7 @@ fun RecipeDetailScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Instructions Section
+                // Instructions Section with Checkboxes
                 Text(
                     text = "Instructions",
                     modifier = Modifier.padding(horizontal = 16.dp),
@@ -2637,23 +2635,76 @@ fun RecipeDetailScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                // Checkboxes for steps
+                var checkedSteps by remember { mutableStateOf(setOf<Int>()) }
+
                 Column(
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     recipe.steps.forEachIndexed { index, step ->
-                        Row(
-                            verticalAlignment = Alignment.Top
+                        val isChecked = checkedSteps.contains(index)
+
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isChecked) Color(0xFFE8F5E9) else Color(0xFFFAFAFA),
+                            tonalElevation = 1.dp
                         ) {
-                            Text(
-                                text = "${index + 1}.",
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.width(24.dp)
-                            )
-                            Text(
-                                text = step,
-                                fontSize = 14.sp
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        checkedSteps = if (isChecked) {
+                                            checkedSteps - index
+                                        } else {
+                                            checkedSteps + index
+                                        }
+                                    }
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.Top
+                            ) {
+                                // Checkbox
+                                androidx.compose.material3.Checkbox(
+                                    checked = isChecked,
+                                    onCheckedChange = { checked ->
+                                        checkedSteps = if (checked) {
+                                            checkedSteps + index
+                                        } else {
+                                            checkedSteps - index
+                                        }
+                                    },
+                                    colors = androidx.compose.material3.CheckboxDefaults.colors(
+                                        checkedColor = Color(0xFF4CAF50),
+                                        uncheckedColor = Color.Gray
+                                    )
+                                )
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                // Step text
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Step ${index + 1}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = if (isChecked) Color(0xFF2E7D32) else Color(0xFF5D4037)
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = step,
+                                        fontSize = 14.sp,
+                                        color = if (isChecked) Color(0xFF616161) else Color.Black,
+                                        style = if (isChecked) {
+                                            androidx.compose.ui.text.TextStyle(
+                                                textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough
+                                            )
+                                        } else {
+                                            androidx.compose.ui.text.TextStyle()
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -2691,7 +2742,7 @@ fun RecipeDetailScreen(
             }
         }  // Box closes
     }  // Scaffold closes
-}  // RecipeDetailScreen closes
+}  // RecipeDetailScreen closes // RecipeDetailScreen closes
 
 // ----------------------------- COURSES UI -----------------------------
 
