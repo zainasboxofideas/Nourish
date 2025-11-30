@@ -2328,8 +2328,12 @@ fun RecipeCard(
     }
 }
 
+// ============================================================================
+// REPLACE YOUR YouTubeVideoPreview FUNCTION (around line 1958) WITH THIS:
+// ============================================================================
+
 @Composable
-fun YouTubeVideoPreview(videoUrl: String, recipeName: String) {
+fun YouTubeVideoPreview(videoUrl: String, recipeName: String, recipeImageRes: Int) {
     val context = LocalContext.current
 
     Surface(
@@ -2350,27 +2354,66 @@ fun YouTubeVideoPreview(videoUrl: String, recipeName: String) {
             .fillMaxWidth()
             .height(200.dp)
             .clip(RoundedCornerShape(16.dp)),
-        shadowElevation = 4.dp,
-        color = Color(0xFF282828)
+        shadowElevation = 4.dp
     ) {
         Box {
+            // ✅ Recipe image as background
+            Image(
+                painter = painterResource(id = recipeImageRes),
+                contentDescription = recipeName,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            // ✅ Dark overlay for text readability
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                            colors = listOf(Color(0xFF282828), Color(0xFF181818))
-                        )
-                    )
+                    .background(Color.Black.copy(alpha = 0.5f))
             )
 
-            // ✅ CENTERED Content
-            Column(
+            // ✅ Top-left text
+            Text(
+                text = "📺 Video Tutorial",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(20.dp),
+                style = androidx.compose.ui.text.TextStyle(
+                    shadow = androidx.compose.ui.graphics.Shadow(
+                        color = Color.Black,
+                        offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                        blurRadius = 4f
+                    )
+                )
+            )
+
+            // ✅ Bottom-left text
+            Text(
+                text = "How to make $recipeName",
+                color = Color.White.copy(alpha = 0.95f),
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(20.dp),
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                style = androidx.compose.ui.text.TextStyle(
+                    shadow = androidx.compose.ui.graphics.Shadow(
+                        color = Color.Black,
+                        offset = androidx.compose.ui.geometry.Offset(1.5f, 1.5f),
+                        blurRadius = 3f
+                    )
+                )
+            )
+
+            // ✅ Centered play button
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                contentAlignment = Alignment.Center
             ) {
-                // ✅ Play button CENTERED
                 Box(
                     modifier = Modifier
                         .size(72.dp)
@@ -2385,26 +2428,6 @@ fun YouTubeVideoPreview(videoUrl: String, recipeName: String) {
                         fontWeight = FontWeight.Bold
                     )
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "Watch Tutorial",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "How to make $recipeName",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 13.sp,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
             }
         }
     }
@@ -2618,7 +2641,8 @@ fun RecipeDetailScreen(
                     ) {
                         YouTubeVideoPreview(
                             videoUrl = videoUrl,
-                            recipeName = recipe.name
+                            recipeName = recipe.name,
+                            recipeImageRes = recipe.imageRes
                         )
                     }
                 }
@@ -3352,7 +3376,8 @@ fun CookAiScreen(onBack: (() -> Unit)? = null) {
                 text = "Cook AI Assistant",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = Color.White,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
 
@@ -3745,4 +3770,3 @@ fun loadRecipesFromJson(context: Context): List<Recipe> {
         sampleRecipes()
     }
 }
-
