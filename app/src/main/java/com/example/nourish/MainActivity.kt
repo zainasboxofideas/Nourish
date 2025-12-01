@@ -185,7 +185,7 @@ fun sampleRecipes(): List<Recipe> = listOf(
             "Toss gently and serve fresh."
         ),
         difficulty = "Easy",
-        videoUrl = "https://youtube.com/shorts/xINa3_xrBIM?si=wHDFBwRpYDHaHaIU"
+        videoUrl = "https://youtube.com/shorts/Ll5EbifQo38?si=f23jwEfp4kgYQF9F"
     ),
     Recipe(
         id = 3,
@@ -289,7 +289,6 @@ class MainActivity : ComponentActivity() {
 
 // ----------------------------- NAVIGATION ROOT -----------------------------
 
-// REPLACE YOUR CookingApp FUNCTION (around line 240) WITH THIS UPDATED VERSION:
 
 
 @OptIn(ExperimentalMaterial3Api::class)
