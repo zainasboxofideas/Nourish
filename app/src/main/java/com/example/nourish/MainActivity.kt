@@ -3620,6 +3620,10 @@ fun EnrollSuccessScreen(
 
 // ----------------------------- COOK AI UI -----------------------------
 
+// ============================================================================
+// REPLACE YOUR ENTIRE CookAiScreen FUNCTION (around line 2300) WITH THIS:
+// ============================================================================
+
 @Composable
 fun CookAiScreen(onBack: (() -> Unit)? = null) {
     var messages by remember { mutableStateOf(listOf<ChatMessage>()) }
@@ -3639,10 +3643,8 @@ fun CookAiScreen(onBack: (() -> Unit)? = null) {
                     temperature = 0.7f
                     topK = 40
                     topP = 0.95f
-
                 }
             )
-
         } catch (e: Exception) {
             android.util.Log.e("CookAi", "Error initializing Gemini AI", e)
             null
@@ -3652,16 +3654,30 @@ fun CookAiScreen(onBack: (() -> Unit)? = null) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFFBF5))
+            .background(
+                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFFFFF8E1),
+                        Color(0xFFFFFBF5)
+                    )
+                )
+            )
     ) {
-        // Header
+        // ✅ IMPROVED Header with gradient
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFFF6B35))
-                .padding(16.dp)
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFFFF6B35),
+                            Color(0xFFFF8A5B)
+                        )
+                    )
+                )
+                .padding(vertical = 20.dp, horizontal = 16.dp)
         ) {
-            // ✅ Back button
+            // Back button on the left
             onBack?.let {
                 IconButton(
                     onClick = it,
@@ -3670,53 +3686,64 @@ fun CookAiScreen(onBack: (() -> Unit)? = null) {
                     Icon(
                         painter = painterResource(id = android.R.drawable.ic_media_previous),
                         contentDescription = "Back",
-                        tint = Color.White
+                        tint = Color.White,
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
-            Text(
-                text = "Cook AI Assistant",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
+
+            // ✅ Centered title with emoji
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.align(Alignment.Center)
-            )
+            ) {
+                Text(
+                    text = "👨‍🍳 Cook AI Assistant",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    letterSpacing = 0.5.sp
+                )
+            }
         }
 
-        // Messages List
+        // ✅ Messages List with better spacing
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (messages.isEmpty()) {
                 item {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 32.dp),
+                            .padding(vertical = 40.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        // ✅ Bigger emoji
                         Text(
                             text = "👨‍🍳",
-                            fontSize = 64.sp
+                            fontSize = 80.sp
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
                         Text(
                             text = "Hi! I'm your cooking assistant",
-                            fontSize = 20.sp,
+                            fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF2D3748)
+                            color = Color(0xFF2D3748),
+                            letterSpacing = 0.3.sp
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "Ask me anything about recipes, cooking techniques, or ingredients!",
-                            fontSize = 14.sp,
+                            fontSize = 16.sp,
                             color = Color(0xFF718096),
                             textAlign = TextAlign.Center,
+                            lineHeight = 24.sp,
                             modifier = Modifier.padding(horizontal = 32.dp)
                         )
                     }
@@ -3724,21 +3751,21 @@ fun CookAiScreen(onBack: (() -> Unit)? = null) {
 
                 item {
                     LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         items(
                             listOf(
-                                "Suggest a quick dinner recipe",
-                                "How do I make pasta from scratch?",
-                                "What can I cook with chicken and rice?",
-                                "Tips for baking bread"
+                                "🍝 Quick dinner ideas",
+                                "🍞 How to bake bread?",
+                                "🍗 Chicken recipes",
+                                "🍰 Baking tips"
                             )
                         ) { suggestion ->
-                            SuggestionChip(
+                            ImprovedSuggestionChip(
                                 text = suggestion,
                                 onClick = {
-                                    userInput = suggestion
+                                    userInput = suggestion.substringAfter(" ")
                                 }
                             )
                         }
@@ -3747,7 +3774,7 @@ fun CookAiScreen(onBack: (() -> Unit)? = null) {
             }
 
             items(messages) { message ->
-                ChatBubble(message = message)
+                ImprovedChatBubble(message = message)
             }
 
             if (isLoading) {
@@ -3755,45 +3782,61 @@ fun CookAiScreen(onBack: (() -> Unit)? = null) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
-                        horizontalArrangement = Arrangement.Start
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color(0xFFFF6B35)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Thinking...",
-                            color = Color(0xFF718096),
-                            fontSize = 14.sp
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color.White,
+                            shadowElevation = 4.dp,
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = Color(0xFFFF6B35),
+                                    strokeWidth = 3.dp
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Thinking...",
+                                    color = Color(0xFF718096),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
 
-        // Error message
+        // ✅ Error message with better design
         errorMessage?.let { error ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFFEE2E2))
-                    .padding(12.dp)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xFFFEE2E2),
+                shadowElevation = 4.dp
             ) {
                 Row(
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "⚠️",
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(end = 8.dp)
+                        fontSize = 24.sp,
+                        modifier = Modifier.padding(end = 12.dp)
                     )
                     Text(
                         text = error,
                         color = Color(0xFFC53030),
-                        fontSize = 14.sp,
-                        modifier = Modifier.weight(1f)
+                        fontSize = 15.sp,
+                        modifier = Modifier.weight(1f),
+                        lineHeight = 20.sp
                     )
                     IconButton(
                         onClick = { errorMessage = null }
@@ -3808,128 +3851,217 @@ fun CookAiScreen(onBack: (() -> Unit)? = null) {
             }
         }
 
-        // Input area
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // ✅ Improved Input area
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = Color.White,
+            shadowElevation = 8.dp
         ) {
-            OutlinedTextField(
-                value = userInput,
-                onValueChange = { userInput = it },
-                modifier = Modifier.weight(1f),
-                placeholder = { Text("Ask me anything about cooking...") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFFFF6B35),
-                    unfocusedBorderColor = Color(0xFFE2E8F0)
-                ),
-                shape = RoundedCornerShape(24.dp),
-                maxLines = 3
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            FloatingActionButton(
-                onClick = {
-                    if (userInput.isNotBlank() && !isLoading) {
-                        val userMessage = ChatMessage(
-                            text = userInput,
-                            isUser = true,
-                            timestamp = System.currentTimeMillis()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = userInput,
+                    onValueChange = { userInput = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = {
+                        Text(
+                            "Ask me anything...",
+                            fontSize = 16.sp,
+                            color = Color(0xFFA0AEC0)
                         )
-                        messages = messages + userMessage
-                        val question = userInput
-                        userInput = ""
-                        errorMessage = null
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFFFF6B35),
+                        unfocusedBorderColor = Color(0xFFE2E8F0),
+                        focusedContainerColor = Color(0xFFFFFBF5),
+                        unfocusedContainerColor = Color(0xFFFFFBF5)
+                    ),
+                    shape = RoundedCornerShape(28.dp),
+                    maxLines = 3,
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        fontSize = 16.sp,
+                        lineHeight = 22.sp
+                    )
+                )
 
-                        coroutineScope.launch {
-                            listState.animateScrollToItem(messages.size)
-                        }
+                Spacer(modifier = Modifier.width(12.dp))
 
-                        // Send to AI
-                        coroutineScope.launch {
-                            isLoading = true
-                            try {
-                                if (generativeModel != null) {
-                                    val response = generativeModel.generateContent(question)
-                                    val aiMessage = ChatMessage(
-                                        text = response.text ?: "Sorry, I couldn't generate a response.",
-                                        isUser = false,
-                                        timestamp = System.currentTimeMillis()
-                                    )
-                                    messages = messages + aiMessage
-                                    listState.animateScrollToItem(messages.size)
-                                } else {
-                                    errorMessage = "AI model not initialized. Please check your API key."
+                FloatingActionButton(
+                    onClick = {
+                        if (userInput.isNotBlank() && !isLoading) {
+                            val userMessage = ChatMessage(
+                                text = userInput,
+                                isUser = true,
+                                timestamp = System.currentTimeMillis()
+                            )
+                            messages = messages + userMessage
+                            val question = userInput
+                            userInput = ""
+                            errorMessage = null
+
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(messages.size)
+                            }
+
+                            // Send to AI
+                            coroutineScope.launch {
+                                isLoading = true
+                                try {
+                                    if (generativeModel != null) {
+                                        val response = generativeModel.generateContent(question)
+                                        val aiMessage = ChatMessage(
+                                            text = response.text ?: "Sorry, I couldn't generate a response.",
+                                            isUser = false,
+                                            timestamp = System.currentTimeMillis()
+                                        )
+                                        messages = messages + aiMessage
+                                        listState.animateScrollToItem(messages.size)
+                                    } else {
+                                        errorMessage = "AI model not initialized. Please check your API key."
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("CookAi", "Error generating response", e)
+                                    errorMessage = "Error: ${e.message ?: "Unknown error occurred"}"
+                                } finally {
+                                    isLoading = false
                                 }
-                            } catch (e: Exception) {
-                                android.util.Log.e("CookAi", "Error generating response", e)
-                                errorMessage = "Error: ${e.message ?: "Unknown error occurred"}"
-                            } finally {
-                                isLoading = false
                             }
                         }
-                    }
-                },
-                containerColor = Color(0xFFFF6B35),
-                modifier = Modifier.size(56.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Send",
-                    tint = Color.White
-                )
+                    },
+                    containerColor = Color(0xFFFF6B35),
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Send,
+                        contentDescription = "Send",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     }
 }
 
+// ============================================================================
+// REPLACE SuggestionChip WITH THIS IMPROVED VERSION:
+// ============================================================================
+
 @Composable
-fun SuggestionChip(text: String, onClick: () -> Unit) {
+fun ImprovedSuggestionChip(text: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         color = Color.White,
-        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        shadowElevation = 3.dp,
+        border = BorderStroke(1.5.dp, Color(0xFFFF6B35).copy(alpha = 0.3f)),
         modifier = Modifier.padding(4.dp)
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            fontSize = 14.sp,
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
             color = Color(0xFF2D3748)
         )
     }
 }
 
+// ============================================================================
+// REPLACE ChatBubble WITH THIS IMPROVED VERSION:
+// ============================================================================
+
 @Composable
-fun ChatBubble(message: ChatMessage) {
+fun ImprovedChatBubble(message: ChatMessage) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
     ) {
+        if (!message.isUser) {
+            // ✅ AI Avatar
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.linearGradient(
+                            colors = listOf(Color(0xFFFF6B35), Color(0xFFFF8A5B))
+                        )
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "👨‍🍳",
+                    fontSize = 22.sp
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+
         Surface(
             shape = RoundedCornerShape(
-                topStart = 16.dp,
-                topEnd = 16.dp,
-                bottomStart = if (message.isUser) 16.dp else 4.dp,
-                bottomEnd = if (message.isUser) 4.dp else 16.dp
+                topStart = 20.dp,
+                topEnd = 20.dp,
+                bottomStart = if (message.isUser) 20.dp else 4.dp,
+                bottomEnd = if (message.isUser) 4.dp else 20.dp
             ),
-            color = if (message.isUser) Color(0xFFFF6B35) else Color.White,
-            modifier = Modifier.widthIn(max = 280.dp),
-            shadowElevation = 2.dp
+            color = if (message.isUser) {
+                Color(0xFFFF6B35)
+            } else {
+                Color.White
+            },
+            modifier = Modifier.widthIn(max = 300.dp),
+            shadowElevation = 4.dp
         ) {
-            Text(
-                text = message.text,
-                modifier = Modifier.padding(12.dp),
-                color = if (message.isUser) Color.White else Color(0xFF2D3748),
-                fontSize = 15.sp
-            )
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = message.text,
+                    color = if (message.isUser) Color.White else Color(0xFF2D3748),
+                    fontSize = 18.sp,
+                    lineHeight = 24.sp,
+                    fontWeight = FontWeight.Normal
+                )
+
+                // ✅ Timestamp
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+                        .format(java.util.Date(message.timestamp)),
+                    fontSize = 11.sp,
+                    color = if (message.isUser) {
+                        Color.White.copy(alpha = 0.7f)
+                    } else {
+                        Color(0xFF718096)
+                    },
+                    modifier = Modifier.align(Alignment.End)
+                )
+            }
+        }
+
+        if (message.isUser) {
+            Spacer(modifier = Modifier.width(8.dp))
+            // ✅ User Avatar
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF4CAF50)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "😊",
+                    fontSize = 22.sp
+                )
+            }
         }
     }
 }
-
 data class ChatMessage(
     val text: String,
     val isUser: Boolean,
